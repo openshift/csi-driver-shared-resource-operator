@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: csi-hostpathplugin
+  namespace: openshift-cluster-csi-drivers
+  labels:
+    app: csi-hostpathplugin
+spec:
+  selector:
+    app: csi-hostpathplugin
+  ports:
+    - name: dummy
+      port: 12345

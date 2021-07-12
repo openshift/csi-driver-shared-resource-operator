@@ -2,7 +2,7 @@
 apiVersion: operator.openshift.io/v1
 kind: "ClusterCSIDriver"
 metadata:
-  name: csi.projected.shared.resources.openshift.io
+  name: csi.shared-resources.openshift.io
 spec:
   logLevel: Normal
   managementState: Managed

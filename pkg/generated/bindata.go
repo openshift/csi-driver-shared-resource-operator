@@ -66,7 +66,7 @@ func (fi bindataFileInfo) Sys() interface{} {
 var _csidriverYaml = []byte(`apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
-  name: csi-driver-projected-resource.openshift.io
+  name: csi.shared-resources.openshift.io
 spec:
   # Supports ephemeral inline volumes.
   volumeLifecycleModes:
@@ -142,7 +142,7 @@ spec:
           command:
             - csi-driver-projected-resource
           args:
-            - "--drivername=csi-driver-projected-resource.openshift.io"
+            - "--drivername=csi.shared-resources.openshift.io"
             - "--v=4"
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(KUBE_NODE_NAME)"

@@ -42,13 +42,12 @@ clean:
 
 GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 
+# Deploys operator manually to the cluster, outside of the management of the cluster storage operator
+# This is useful for testing/CI purposes.
 deploy:
 	hack/deploy.sh
 
-# Run e2e tests. Requires openshift-tests in $PATH.
-#
-# Example:
-#   make test-e2e
+# Run e2e tests. TODO - actually write e2e tests in golang
 test-e2e:
 	hack/e2e.sh
 

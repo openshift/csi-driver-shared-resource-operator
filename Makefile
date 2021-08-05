@@ -42,10 +42,18 @@ clean:
 
 GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 
-# Run e2e tests. Requires openshift-tests in $PATH.
+# Deploy csi-driver-shared-resource-operator to the cluster
 #
-# Example:
-#   make test-e2e
+# Deployment can be tuned using the following environment variables:
+#
+# - OPERATOR_IMAGE: the image for the operator to deploy
+# - DRIVER_IMAGE: the image for the CSI driver
+# - NODE_REGISTRAR_IMAGE: the image for the csi node registrar
+# - LOG_LEVEL: log level for the operator
+deploy:
+	hack/deploy.sh
+
+# Run e2e tests. TODO - actually write e2e tests in golang
 test-e2e:
 	hack/e2e.sh
 

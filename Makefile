@@ -42,6 +42,9 @@ clean:
 
 GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 
+deploy:
+	hack/deploy.sh
+
 # Run e2e tests. Requires openshift-tests in $PATH.
 #
 # Example:

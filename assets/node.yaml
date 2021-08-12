@@ -14,7 +14,7 @@ spec:
       labels:
         app: csi-hostpathplugin
     spec:
-      serviceAccountName: csi-driver-projected-resource-plugin
+      serviceAccountName: csi-driver-shared-resource-plugin
       containers:
         - name: node-driver-registrar
           image: ${NODE_DRIVER_REGISTRAR_IMAGE}
@@ -46,7 +46,7 @@ spec:
           # for development purposes; eventually switch to IfNotPresent
           imagePullPolicy: Always
           command:
-            - csi-driver-projected-resource
+            - csi-driver-shared-resource
           args:
             - "--drivername=csi.shared-resources.openshift.io"
             - "--v=4"

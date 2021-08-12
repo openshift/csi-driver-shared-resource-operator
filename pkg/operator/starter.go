@@ -25,8 +25,8 @@ import (
 const (
 	// Operand and operator run in the same namespace
 	defaultNamespace = "openshift-cluster-csi-drivers"
-	operatorName     = "shared-resources-operator"
-	operandName      = "csi-driver-projected-resource"
+	operatorName     = "csi-driver-shared-resource-operator"
+	operandName      = "csi-driver-shared-resource"
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {

@@ -1,6 +1,6 @@
-# shared-resources-operator
+# csi-driver-shared-resource-operator
 
-An operator to deploy the [Projected Shared Resource CSI Driver](https://github.com/openshift/gcp-pd-csi-driver) in OpenShift.
+An operator to deploy the [Shared Resource CSI Driver](https://github.com/openshift/csi-driver-shared-resource) in OpenShift.
 
 This operator will eventually be installed by the [cluster-storage-operator](https://github.com/openshift/cluster-storage-operator).
 
@@ -19,20 +19,11 @@ oc scale --replicas=0 deploy/cluster-storage-operator -n openshift-cluster-stora
 oc delete -F -f ./assets
 ```
 
-To build and run the operator locally:
+To build run `make build`.
 
-```shell
-# Create only the resources the operator needs to run via CLI; this yaml will eventually reside in the cluster-storage-operator repository.
-oc apply -f ./csi-driver-yaml-that-will-live-in-cluster-storage-operator.yaml 
-
-# Build the operator
-make
-
-# Set the environment variables
-export NODE_DRIVER_REGISTRAR_IMAGE=quay.io/openshift/origin-csi-node-driver-registrar:latest
-export DRIVER_IMAGE=quay.io/openshift/origin-csi-driver-projected-resource:latest
-
-# Run the operator via CLI
-./shared-resources-operator start --kubeconfig $MY_KUBECONFIG --namespace openshift-cluster-csi-drivers
-```
+To deploy run `make deploy`.  You can override the images used for the CSI Node Driver Registrar, the image for this operator,
+and the image used for the Shared Resource CSI Driver that this operator deploys, all via environment variables:
+- `NODE_DRIVER_REGISTRAR_IMAGE` where the default is quay.io/openshift/origin-csi-node-driver-registrar:latest
+- `OPERATOR_IMAGE` where the default is quay.io/openshift/origin-csi-driver-shared-resource-operator:latest
+- `DRIVER_IMAGE`  where the default is quay.io/openshift/origin-csi-driver-shared-resource:latest
 

@@ -2,12 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: projected-shared-resource-prometheus
+  name: shared-resource-prometheus
   namespace: openshift-cluster-csi-drivers
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: projected-shared-resource-prometheus
+  name: shared-resource-prometheus
 subjects:
   - kind: ServiceAccount
     name: prometheus-k8s

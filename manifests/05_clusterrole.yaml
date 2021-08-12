@@ -93,6 +93,7 @@ rules:
   - ''
   resources:
   - secrets
+  - configmaps
   verbs:
   - get
   - list
@@ -267,3 +268,17 @@ rules:
   - "tokenreviews"
   verbs:
   - "create"
+- apiGroups:
+  - sharedresource.openshift.io
+  resources:
+    - shares
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create

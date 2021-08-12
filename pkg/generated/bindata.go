@@ -108,7 +108,7 @@ spec:
       labels:
         app: csi-hostpathplugin
     spec:
-      serviceAccountName: csi-driver-projected-resource-plugin
+      serviceAccountName: csi-driver-shared-resource-plugin
       containers:
         - name: node-driver-registrar
           image: ${NODE_DRIVER_REGISTRAR_IMAGE}
@@ -140,7 +140,7 @@ spec:
           # for development purposes; eventually switch to IfNotPresent
           imagePullPolicy: Always
           command:
-            - csi-driver-projected-resource
+            - csi-driver-shared-resource
           args:
             - "--drivername=csi.shared-resources.openshift.io"
             - "--v=4"
@@ -225,7 +225,7 @@ func nodeYaml() (*asset, error) {
 var _node_saYaml = []byte(`apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: csi-driver-projected-resource-plugin
+  name: csi-driver-shared-resource-plugin
   namespace: openshift-cluster-csi-drivers`)
 
 func node_saYamlBytes() ([]byte, error) {
@@ -246,14 +246,14 @@ func node_saYaml() (*asset, error) {
 var _rbacNode_bindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: projected-resource-secret-configmap-share-watch-sar-create
+  name: shared-resource-secret-configmap-share-watch-sar-create
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: projected-resource-secret-configmap-share-watch-sar-create
+  name: shared-resource-secret-configmap-share-watch-sar-create
 subjects:
   - kind: ServiceAccount
-    name: csi-driver-projected-resource-plugin
+    name: csi-driver-shared-resource-plugin
     namespace: openshift-cluster-csi-drivers`)
 
 func rbacNode_bindingYamlBytes() ([]byte, error) {
@@ -274,14 +274,14 @@ func rbacNode_bindingYaml() (*asset, error) {
 var _rbacNode_privileged_bindingYaml = []byte(`kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: projected-shared-resource-node-privileged-binding
+  name: shared-resource-node-privileged-binding
 subjects:
   - kind: ServiceAccount
-    name: csi-driver-projected-resource-plugin
+    name: csi-driver-shared-resource-plugin
     namespace: openshift-cluster-csi-drivers
 roleRef:
   kind: ClusterRole
-  name: projected-shared-resource-privileged-role
+  name: shared-resource-privileged-role
   apiGroup: rbac.authorization.k8s.io`)
 
 func rbacNode_privileged_bindingYamlBytes() ([]byte, error) {
@@ -302,7 +302,7 @@ func rbacNode_privileged_bindingYaml() (*asset, error) {
 var _rbacNode_roleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: projected-resource-secret-configmap-share-watch-sar-create
+  name: shared-resource-secret-configmap-share-watch-sar-create
 rules:
   - apiGroups:
       - ""
@@ -315,7 +315,7 @@ rules:
       - list
       - watch
   - apiGroups:
-      - projectedresource.storage.openshift.io
+      - sharedresource.openshift.io
     resources:
       - shares
     verbs:
@@ -349,7 +349,7 @@ var _rbacPrivileged_roleYaml = []byte(`
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: projected-shared-resource-privileged-role
+  name: shared-resource-privileged-role
 rules:
   - apiGroups: ["security.openshift.io"]
     resourceNames: ["privileged"]
@@ -375,7 +375,7 @@ var _rbacPrometheus_roleYaml = []byte(`# Role for accessing metrics exposed by t
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: projected-shared-resource-prometheus
+  name: shared-resource-prometheus
   namespace: openshift-cluster-csi-drivers
 rules:
   - apiGroups:
@@ -408,12 +408,12 @@ var _rbacPrometheus_rolebindingYaml = []byte(`# Grant cluster-monitoring access 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: projected-shared-resource-prometheus
+  name: shared-resource-prometheus
   namespace: openshift-cluster-csi-drivers
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: projected-shared-resource-prometheus
+  name: shared-resource-prometheus
 subjects:
   - kind: ServiceAccount
     name: prometheus-k8s

@@ -1,9 +1,9 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.16-openshift-4.8 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.16-openshift-4.10 AS builder
 WORKDIR /go/src/github.com/openshift/shared-resources-operator
 COPY . .
 RUN make
 
-FROM registry.ci.openshift.org/ocp/4.8:base
+FROM registry.ci.openshift.org/ocp/4.10:base
 COPY --from=builder /go/src/github.com/openshift/shared-resources-operator/shared-resources-operator /usr/bin/
 ENTRYPOINT ["/usr/bin/shared-resources-operator"]
 LABEL io.k8s.display-name="OpenShift Projected Shared Resources Operator" \

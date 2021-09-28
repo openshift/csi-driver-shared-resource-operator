@@ -1,8 +1,8 @@
-# this will eventually in in the cluster-storage-operator repo once we complete integration there
+# this will eventually be in the cluster-storage-operator repo once we complete integration there
 apiVersion: operator.openshift.io/v1
 kind: "ClusterCSIDriver"
 metadata:
-  name: csi.shared-resources.openshift.io
+  name: csi.sharedresource.openshift.io
 spec:
   logLevel: Normal
   managementState: Managed

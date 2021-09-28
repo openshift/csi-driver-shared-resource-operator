@@ -16,7 +16,8 @@ rules:
   - apiGroups:
       - sharedresource.openshift.io
     resources:
-      - shares
+      - sharedconfigmaps
+      - sharedsecrets
     verbs:
       - get
       - list

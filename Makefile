@@ -51,8 +51,6 @@ GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 # - NODE_REGISTRAR_IMAGE: the image for the csi node registrar
 # - LOG_LEVEL: log level for the operator
 deploy:
-	# temporary creation of CSIDriver object until we merge this operator into the CSO
-	oc apply -f ./csi-driver-yaml-that-will-live-in-cluster-storage-operator.yaml
 	hack/deploy.sh
 
 # Run e2e tests. TODO - actually write e2e tests in golang

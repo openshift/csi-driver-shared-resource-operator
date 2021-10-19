@@ -67,6 +67,9 @@ var _csidriverYaml = []byte(`apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: csi.sharedresource.openshift.io
+  annotations:
+    # This CSIDriver is managed by an OCP CSI operator
+    csi.openshift.io/managed: "true"
 spec:
   # Supports ephemeral inline volumes.
   volumeLifecycleModes:

@@ -98,18 +98,18 @@ func csidriverYaml() (*asset, error) {
 var _nodeYaml = []byte(`kind: DaemonSet
 apiVersion: apps/v1
 metadata:
-  name: csi-hostpathplugin
+  name: shared-resource-csi-driver-node
   namespace: openshift-cluster-csi-drivers
   labels:
-    app: csi-hostpathplugin
+    app: shared-resource-csi-driver-node
 spec:
   selector:
     matchLabels:
-      app: csi-hostpathplugin
+      app: shared-resource-csi-driver-node
   template:
     metadata:
       labels:
-        app: csi-hostpathplugin
+        app: shared-resource-csi-driver-node
     spec:
       serviceAccountName: csi-driver-shared-resource-plugin
       containers:
@@ -443,13 +443,13 @@ func rbacPrometheus_rolebindingYaml() (*asset, error) {
 var _serviceYaml = []byte(`kind: Service
 apiVersion: v1
 metadata:
-  name: csi-hostpathplugin
+  name: shared-resource-csi-driver-node
   namespace: openshift-cluster-csi-drivers
   labels:
-    app: csi-hostpathplugin
+    app: shared-resource-csi-driver-node
 spec:
   selector:
-    app: csi-hostpathplugin
+    app: shared-resource-csi-driver-node
   ports:
     - name: dummy
       port: 12345`)

@@ -15,8 +15,11 @@ Before running the operator manually, you must remove the operator installed by 
 oc scale --replicas=0 deploy/cluster-version-operator -n openshift-cluster-version
 oc scale --replicas=0 deploy/cluster-storage-operator -n openshift-cluster-storage-operator
 
-# Delete operator resources from a clone of this repository
-oc delete -F -f ./assets
+# Delete operator's resources from a clone of this repository
+oc delete -f ./manifests
+
+# Delete operator's operand resources from a clone of this repository
+oc delete -f ./assets
 ```
 
 To build run `make build`.

@@ -119,6 +119,8 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"csidriver.yaml",
 			"node_sa.yaml",
 			"service.yaml",
+			"metrics_service.yaml",
+			"servicemonitor.yaml",
 			"rbac/privileged_role.yaml",
 			"rbac/node_role.yaml",
 			"rbac/node_privileged_binding.yaml",

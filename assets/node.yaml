@@ -64,6 +64,9 @@ spec:
             - containerPort: 9898
               name: healthz
               protocol: TCP
+            - containerPort: 6000
+              name: metrics
+              protocol: TCP
           volumeMounts:
             - mountPath: /var/run/configmaps/config
               name: config

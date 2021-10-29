@@ -48,13 +48,11 @@ spec:
           command:
             - csi-driver-shared-resource
           args:
+            - --config=/var/run/configmaps/config/config.yaml
             - "--drivername=csi.sharedresource.openshift.io"
             - "--v=4"
-            - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(KUBE_NODE_NAME)"
           env:
-            - name: CSI_ENDPOINT
-              value: unix:///csi/csi.sock
             - name: KUBE_NODE_NAME
               valueFrom:
                 fieldRef:
@@ -66,7 +64,12 @@ spec:
             - containerPort: 9898
               name: healthz
               protocol: TCP
+            - containerPort: 6000
+              name: metrics
+              protocol: TCP
           volumeMounts:
+            - mountPath: /var/run/configmaps/config
+              name: config
             - mountPath: /csi
               name: socket-dir
             - mountPath: /var/lib/kubelet/pods
@@ -83,6 +86,10 @@ spec:
               name: dev-dir
 
       volumes:
+        - configMap:
+            optional: true
+            name: csi-driver-shared-resource-config
+          name: config
         - hostPath:
             path: /var/lib/kubelet/plugins/csi-hostpath
             type: DirectoryOrCreate

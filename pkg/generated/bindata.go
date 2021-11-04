@@ -79,7 +79,10 @@ spec:
   # To determine at runtime which mode a volume uses, pod info and its
   # "csi.storage.k8s.io/ephemeral" entry are needed.
   podInfoOnMount: true
-
+  # Always apply pod.spec.securityContext.fsGroup, autodetection does not work for Ephemeral volumes.
+  fsGroupPolicy: File
+  # This CSI driver does not implement ControllerPublish.
+  attachRequired: false
 `)
 
 func csidriverYamlBytes() ([]byte, error) {

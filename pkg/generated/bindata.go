@@ -170,7 +170,7 @@ spec:
               name: socket-dir
             - mountPath: /registration
               name: registration-dir
-            - mountPath: /csi-data-dir
+            - mountPath: /run/csi-data-dir
               name: csi-data-dir
 
         - name: hostpath
@@ -210,8 +210,9 @@ spec:
             - mountPath: /var/lib/kubelet/plugins
               mountPropagation: Bidirectional
               name: plugins-dir
-            - mountPath: /csi-data-dir
+            - mountPath: /run/csi-data-dir
               name: csi-data-dir
+              mountPropagation: Bidirectional
             - mountPath: /csi-volumes-map
               name: csi-volumes-map
             - mountPath: /dev
@@ -242,9 +243,10 @@ spec:
             path: /var/lib/csi-volumes-map/
             type: DirectoryOrCreate
           name: csi-volumes-map
-        - emptyDir:
-            # this tells Kubernetes to mount a tmpfs (RAM-backed filesystem)
-            medium: Memory
+        - hostPath:
+          # hostPath under /run are mounted as a tmpfs (RAM-backed filesystem)
+            path: /run/csi-data-dir
+            type: DirectoryOrCreate
           name: csi-data-dir
         - hostPath:
             path: /dev

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -101,6 +103,28 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			}
 			klog.Infof("Successfully created CustomResourceDefinition %q.", customResourceDefinition.Name)
 		}
+	}
+
+	cmData, err := generated.Asset("config_configmap.yaml")
+	if err != nil {
+		return fmt.Errorf("error occurred reading file 'config_configmap.yaml': %s", err)
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := yaml.Unmarshal(cmData, configMap); err != nil {
+		return fmt.Errorf("error occurred unmarshalling file 'config_configmap.yaml': %s", err)
+	}
+	_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(ctx, "csi-driver-shared-resource-config", metav1.GetOptions{})
+	if kerrors.IsNotFound(err) {
+		_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(ctx, configMap, metav1.CreateOptions{})
+		if err != nil {
+			return fmt.Errorf("error occurred creating 'csi-driver-shared-resource-config' ConfigMap: %s", err)
+		}
+		klog.Infof("Successfully created ConfigMap %q", configMap.Name)
+	} else {
+		klog.Infof("ConfigMap '%q' already exists", configMap.Name)
+	}
+	if err != nil && !kerrors.IsNotFound(err) {
+		return fmt.Errorf("unexpected error determining if 'csi-driver-shared-resource-config' exists: %s", err)
 	}
 
 	csiControllerSet := csicontrollerset.NewCSIControllerSet(

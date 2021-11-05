@@ -14,7 +14,7 @@ set -o pipefail
 
 rm -rf _deploy
 mkdir -p _deploy
-cp -r manifests/* _deploy/
+cp -r ../cluster-storage-operator/assets/csidriveroperators/shared-resource/* _deploy/
 
 operatorImage=${OPERATOR_IMAGE:-quay.io/openshift/origin-csi-driver-shared-resource-operator:latest}
 driverImage=${DRIVER_IMAGE:-quay.io/openshift/origin-csi-driver-shared-resource:latest}
@@ -30,6 +30,6 @@ sed -i -e "s|\${OPERATOR_IMAGE}|${operatorImage}|g" \
   -e "s|\${DRIVER_IMAGE}|${driverImage}|g" \
   -e "s|\${NODE_DRIVER_REGISTRAR_IMAGE}|${nodeRegistrar}|g" \
   -e "s|\${LOG_LEVEL}|${logLevel}|g" \
-  _deploy/12_deployment.yaml
+  _deploy/09_deployment.yaml
 
 oc apply -f _deploy/

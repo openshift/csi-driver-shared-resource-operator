@@ -8,15 +8,17 @@ NOTE:  at the moment, using this driver is only supported via cloning this repos
 
 # Quick start
 
-Before running the operator manually, you must remove the operator installed by CSO/CVO
+Before running the operator manually, you must remove the operator installed by CSO/CVO.  To facilitate that, you
+should have a clone of the [cluster-storage-operator](https://github.com/openshift/cluster-storage-operator) as a peer
+subdirectory (off of an 'openshift' directory) of your clone of this repository.
 
 ```shell
 # Scale down CVO and CSO
 oc scale --replicas=0 deploy/cluster-version-operator -n openshift-cluster-version
 oc scale --replicas=0 deploy/cluster-storage-operator -n openshift-cluster-storage-operator
 
-# Delete operator's resources from a clone of this repository
-oc delete -f ./manifests
+# Delete operator's resources from a clone of the cluster storage operator repository
+oc delete -f ../cluster-storage-operator/assets/csidriveroperators/shared-resource/
 
 # Delete operator's operand resources from a clone of this repository
 oc delete -f ./assets

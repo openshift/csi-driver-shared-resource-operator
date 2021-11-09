@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync/atomic"
 	"testing"
 
 	v1alpha1 "github.com/openshift/api/sharedresource/v1alpha1"
@@ -13,19 +14,25 @@ import (
 	"github.com/prometheus/common/expfmt"
 )
 
-func runMetricsServer(t *testing.T) chan<- struct{} {
+var (
+	portOffset uint32 = 0
+)
+
+func runMetricsServer(t *testing.T) (int, chan<- struct{}) {
+	port := MetricsPort + int(atomic.AddUint32(&portOffset, 1))
+
 	ch := make(chan struct{})
-	server := BuildServer(MetricsPort)
+	server := BuildServer(port)
 	go RunServer(server, ch)
 
-	return ch
+	return port, ch
 }
 
 func TestRunServer(t *testing.T) {
-	ch := runMetricsServer(t)
+	port, ch := runMetricsServer(t)
 	defer close(ch)
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", MetricsPort))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port))
 	if err != nil {
 		t.Fatalf("error while querying metrics server: %v", err)
 	}
@@ -175,9 +182,9 @@ func TestMetricQueries(t *testing.T) {
 		}
 		prometheus.MustRegister(&sc)
 
-		ch := runMetricsServer(t)
+		port, ch := runMetricsServer(t)
 		for _, e := range test.expected {
-			testQueryGaugeMetric(t, test.name, MetricsPort, e.total, e.queryName)
+			testQueryGaugeMetric(t, test.name, port, e.total, e.queryName)
 		}
 		close(ch)
 

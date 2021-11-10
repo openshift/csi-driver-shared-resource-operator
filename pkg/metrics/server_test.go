@@ -6,17 +6,40 @@ import (
 	"net/http"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	v1alpha1 "github.com/openshift/api/sharedresource/v1alpha1"
 	sharev1alpha1 "github.com/openshift/client-go/sharedresource/listers/sharedresource/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+
+	utilnet "k8s.io/apimachinery/pkg/util/net"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var (
 	portOffset uint32 = 0
 )
+
+func blockUntilServerStarted(port int) error {
+	return wait.PollImmediate(100*time.Millisecond, 5*time.Second, func() (bool, error) {
+		if _, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port)); err != nil {
+			// in case error is "connection refused", server is not up (yet)
+			// it is possible that it is still being started
+			// in that case we need to try more
+			if utilnet.IsConnectionRefused(err) {
+				return false, nil
+			}
+
+			// in case of a different error, return immediately
+			return true, err
+		}
+
+		// no error, stop polling the server, continue with the test logic
+		return true, nil
+	})
+}
 
 func runMetricsServer(t *testing.T) (int, chan<- struct{}) {
 	port := MetricsPort + int(atomic.AddUint32(&portOffset, 1))
@@ -24,6 +47,10 @@ func runMetricsServer(t *testing.T) (int, chan<- struct{}) {
 	ch := make(chan struct{})
 	server := BuildServer(port)
 	go RunServer(server, ch)
+
+	if err := blockUntilServerStarted(port); err != nil {
+		t.Fatalf("error while waiting for metrics server: %v", err)
+	}
 
 	return port, ch
 }

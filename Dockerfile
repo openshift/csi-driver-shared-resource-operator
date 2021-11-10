@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.16-openshift-4.10 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.17-openshift-4.10 AS builder
 WORKDIR /go/src/github.com/openshift/shared-resources-operator
 COPY . .
 COPY vendor/github.com/openshift/api/sharedresource/v1alpha1/*.crd.yaml assets/

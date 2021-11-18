@@ -158,16 +158,30 @@ func csidriverYaml() (*asset, error) {
 var _metrics_serviceYaml = []byte(`kind: Service
 apiVersion: v1
 metadata:
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: shared-resource-csi-driver-node-metrics-serving-cert
   name: shared-resource-csi-driver-node-metrics
   namespace: openshift-cluster-csi-drivers
   labels:
-    app: shared-resource-csi-driver-node
+    app: shared-resource-csi-driver-node-metrics
 spec:
+  sessionAffinity: None
+  type: ClusterIP
   selector:
     app: shared-resource-csi-driver-node
   ports:
-    - name: metrics
-      port: 6000
+  - name: provisioner-m
+    port: 443
+    protocol: TCP
+    targetPort: provisioner-m
+  - name: attacher-m
+    port: 444
+    protocol: TCP
+    targetPort: attacher-m
+  - name: resizer-m
+    port: 445
+    protocol: TCP
+    targetPort: resizer-m
 `)
 
 func metrics_serviceYamlBytes() ([]byte, error) {
@@ -589,7 +603,7 @@ var _servicemonitorYaml = []byte(`---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: shared-resource-csi-driver-node
+  name: shared-resource-csi-driver-node-monitor
   namespace: openshift-cluster-csi-drivers
   annotations:
     include.release.openshift.io/ibm-cloud-managed: "true"
@@ -597,10 +611,34 @@ metadata:
     include.release.openshift.io/single-node-developer: "true"
 spec:
   endpoints:
-    - port: metrics
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: provisioner-m
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: shared-resource-csi-driver-node-metrics.openshift-cluster-csi-drivers.svc
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: attacher-m
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: shared-resource-csi-driver-node-metrics.openshift-cluster-csi-drivers.svc
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: resizer-m
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: shared-resource-csi-driver-node-metrics.openshift-cluster-csi-drivers.svc
+  jobLabel: component
   selector:
     matchLabels:
-      app: shared-resource-csi-driver-node
+      app: shared-resource-csi-driver-node-metrics
 `)
 
 func servicemonitorYamlBytes() ([]byte, error) {

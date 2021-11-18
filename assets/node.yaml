@@ -6,6 +6,10 @@ metadata:
   labels:
     app: shared-resource-csi-driver-node
 spec:
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+    type: RollingUpdate
   selector:
     matchLabels:
       app: shared-resource-csi-driver-node
@@ -14,6 +18,7 @@ spec:
       labels:
         app: shared-resource-csi-driver-node
     spec:
+      priorityClassName: system-node-critical
       serviceAccountName: csi-driver-shared-resource-plugin
       containers:
         - name: node-driver-registrar
@@ -40,7 +45,13 @@ spec:
               name: registration-dir
             - mountPath: /run/csi-data-dir
               name: csi-data-dir
-
+          resources:
+            limits:
+              cpu: 200m
+              memory: 100Mi
+            requests:
+              cpu: 10m
+              memory: 20Mi
         - name: hostpath
           image: ${DRIVER_IMAGE}
           # for development purposes; eventually switch to IfNotPresent
@@ -85,7 +96,13 @@ spec:
               name: csi-volumes-map
             - mountPath: /dev
               name: dev-dir
-
+          resources:
+            limits:
+              cpu: 400m
+              memory: 300Mi
+            requests:
+              cpu: 10m
+              memory: 20Mi
       volumes:
         - configMap:
             optional: true

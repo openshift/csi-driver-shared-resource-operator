@@ -231,7 +231,7 @@ spec:
         - name: hostpath
           image: ${DRIVER_IMAGE}
           # for development purposes; eventually switch to IfNotPresent
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command:
             - csi-driver-shared-resource
           args:

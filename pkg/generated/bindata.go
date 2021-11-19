@@ -247,9 +247,6 @@ spec:
             - mountPath: /run/csi-data-dir
               name: csi-data-dir
           resources:
-            limits:
-              cpu: 200m
-              memory: 100Mi
             requests:
               cpu: 10m
               memory: 20Mi
@@ -298,9 +295,6 @@ spec:
             - mountPath: /dev
               name: dev-dir
           resources:
-            limits:
-              cpu: 400m
-              memory: 300Mi
             requests:
               cpu: 10m
               memory: 20Mi

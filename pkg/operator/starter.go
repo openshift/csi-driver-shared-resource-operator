@@ -75,57 +75,39 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		return err
 	}
 
-	crds := []string{"0000_10_sharedsecret.crd.yaml", "0000_10_sharedconfigmap.crd.yaml"}
-	for _, crd := range crds {
-		data, err := generated.Asset(crd)
-		if err != nil {
-			return fmt.Errorf("error occurred reading file %q: %s", crd, err)
-		}
-
-		var customResourceDefinition apiextensionsv1.CustomResourceDefinition
-		if err := yaml.Unmarshal(data, &customResourceDefinition); err != nil {
-			return fmt.Errorf("error occurred unmarshalling file %q into object: %s", crd, err)
-		}
-
-		foundItems, err := apiextensionsClient.ApiextensionsV1().CustomResourceDefinitions().List(ctx, metav1.ListOptions{
-			FieldSelector: fmt.Sprintf("metadata.name=%s", customResourceDefinition.Name),
-		})
-		if err != nil {
-			return fmt.Errorf("unexpected error occurred listing CustomResourceDefinitions: %s", err)
-		}
-
-		if len(foundItems.Items) > 0 {
-			klog.Infof("CustomResourceDefinition %q already exists, skipping creation.", customResourceDefinition.Name)
-		} else {
-
-			if _, err := apiextensionsClient.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, &customResourceDefinition, metav1.CreateOptions{}); err != nil {
-				return fmt.Errorf("error occurred creating CustomResourceDefinition: %s", err)
-			}
-			klog.Infof("Successfully created CustomResourceDefinition %q.", customResourceDefinition.Name)
-		}
-	}
-
-	cmData, err := generated.Asset("config_configmap.yaml")
+	err = ensureCRDSExist(ctx, apiextensionsClient)
 	if err != nil {
-		return fmt.Errorf("error occurred reading file 'config_configmap.yaml': %s", err)
+		return err
 	}
-	configMap := &corev1.ConfigMap{}
-	if err := yaml.Unmarshal(cmData, configMap); err != nil {
-		return fmt.Errorf("error occurred unmarshalling file 'config_configmap.yaml': %s", err)
-	}
-	_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(ctx, "csi-driver-shared-resource-config", metav1.GetOptions{})
-	if kerrors.IsNotFound(err) {
-		_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(ctx, configMap, metav1.CreateOptions{})
-		if err != nil {
-			return fmt.Errorf("error occurred creating 'csi-driver-shared-resource-config' ConfigMap: %s", err)
+	crdTicker := time.NewTicker(10 * time.Minute)
+	crdDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-crdDone:
+				return
+			case <-crdTicker.C:
+				ensureCRDSExist(ctx, apiextensionsClient)
+			}
 		}
-		klog.Infof("Successfully created ConfigMap %q", configMap.Name)
-	} else {
-		klog.Infof("ConfigMap '%q' already exists", configMap.Name)
+	}()
+
+	err = ensureConfigurationConfigMapExists(ctx, kubeClient)
+	if err != nil {
+		return err
 	}
-	if err != nil && !kerrors.IsNotFound(err) {
-		return fmt.Errorf("unexpected error determining if 'csi-driver-shared-resource-config' exists: %s", err)
-	}
+	cmTicker := time.NewTicker(10 * time.Minute)
+	cmDone := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-cmDone:
+				return
+			case <-cmTicker.C:
+				ensureConfigurationConfigMapExists(ctx, kubeClient)
+			}
+		}
+	}()
 
 	csiControllerSet := csicontrollerset.NewCSIControllerSet(
 		operatorClient,
@@ -185,6 +167,73 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	go metrics.RunServer(server, ctx.Done())
 
 	<-ctx.Done()
+	crdDone <- true
+	cmDone <- true
 
 	return fmt.Errorf("stopped")
+}
+
+// when we promote out of tech preview and into OCP in general, the shared resource CRDs will be vendored into
+// openshift apiserver and CRD existence will be managed just as it is managed for all the other openshift CRDS;
+// in the interim, this method and the associated ticker created is a "cheap / meets min / don't go down the path
+// of shared informers" means for dealing with inadvertent deletes of the CRD
+func ensureCRDSExist(ctx context.Context, apiextensionsClient apiextensionsclient.Interface) error {
+	crds := []string{"0000_10_sharedsecret.crd.yaml", "0000_10_sharedconfigmap.crd.yaml"}
+	for _, crd := range crds {
+		data, err := generated.Asset(crd)
+		if err != nil {
+			return fmt.Errorf("error occurred reading file %q: %s", crd, err)
+		}
+
+		var customResourceDefinition apiextensionsv1.CustomResourceDefinition
+		if err := yaml.Unmarshal(data, &customResourceDefinition); err != nil {
+			return fmt.Errorf("error occurred unmarshalling file %q into object: %s", crd, err)
+		}
+
+		foundItems, err := apiextensionsClient.ApiextensionsV1().CustomResourceDefinitions().List(ctx, metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("metadata.name=%s", customResourceDefinition.Name),
+		})
+		if err != nil {
+			return fmt.Errorf("unexpected error occurred listing CustomResourceDefinitions: %s", err)
+		}
+
+		if len(foundItems.Items) > 0 {
+			klog.Infof("CustomResourceDefinition %q already exists, skipping creation.", customResourceDefinition.Name)
+		} else {
+
+			if _, err := apiextensionsClient.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, &customResourceDefinition, metav1.CreateOptions{}); err != nil {
+				return fmt.Errorf("error occurred creating CustomResourceDefinition: %s", err)
+			}
+			klog.Infof("Successfully created CustomResourceDefinition %q.", customResourceDefinition.Name)
+		}
+	}
+	return nil
+}
+
+// the driver will run without our configuration configmap present, but we still prefer to have explicit configuration
+// present, so we employ some cheap / meets min / don't go down the path
+// of shared informers" means for dealing with inadvertent deletes of the configuration configmap
+func ensureConfigurationConfigMapExists(ctx context.Context, kubeClient kubeclient.Interface) error {
+	cmData, err := generated.Asset("config_configmap.yaml")
+	if err != nil {
+		return fmt.Errorf("error occurred reading file 'config_configmap.yaml': %s", err)
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := yaml.Unmarshal(cmData, configMap); err != nil {
+		return fmt.Errorf("error occurred unmarshalling file 'config_configmap.yaml': %s", err)
+	}
+	_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(ctx, configMap.Name, metav1.GetOptions{})
+	if kerrors.IsNotFound(err) {
+		_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(ctx, configMap, metav1.CreateOptions{})
+		if err != nil {
+			return fmt.Errorf("error occurred creating %q ConfigMap: %s", configMap.Name, err)
+		}
+		klog.Infof("Successfully created ConfigMap %q", configMap.Name)
+	} else {
+		klog.Infof("ConfigMap '%q' already exists", configMap.Name)
+	}
+	if err != nil && !kerrors.IsNotFound(err) {
+		return fmt.Errorf("unexpected error determining if %q exists: %s", configMap.Name, err)
+	}
+	return nil
 }

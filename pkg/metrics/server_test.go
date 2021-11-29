@@ -113,8 +113,8 @@ func TestMetricQueries(t *testing.T) {
 		{
 			name: "One secret, one config map",
 			expected: []queryResult{
-				{"openshift_csi_share_configmap_total", 1},
-				{"openshift_csi_share_secret_total", 1},
+				{"openshift_csi_share_configmap", 1},
+				{"openshift_csi_share_secret", 1},
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{
@@ -144,8 +144,8 @@ func TestMetricQueries(t *testing.T) {
 		{
 			name: "Two secrets, no config maps",
 			expected: []queryResult{
-				{"openshift_csi_share_secret_total", 2},
-				{"openshift_csi_share_configmap_total", 0},
+				{"openshift_csi_share_secret", 2},
+				{"openshift_csi_share_configmap", 0},
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{
@@ -174,8 +174,8 @@ func TestMetricQueries(t *testing.T) {
 		{
 			name: "No secrets, two config maps",
 			expected: []queryResult{
-				{"openshift_csi_share_configmap_total", 2},
-				{"openshift_csi_share_secret_total", 0},
+				{"openshift_csi_share_configmap", 2},
+				{"openshift_csi_share_secret", 0},
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{},

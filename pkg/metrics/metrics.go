@@ -19,8 +19,8 @@ const (
 	cm     = "configmap"
 	secret = "secret"
 
-	cmCountName     = sharesSubsystem + separator + cm + separator + "total"
-	secretCountName = sharesSubsystem + separator + secret + separator + "total"
+	cmCountName     = sharesSubsystem + separator + cm
+	secretCountName = sharesSubsystem + separator + secret
 
 	MetricsPort = 6000
 )

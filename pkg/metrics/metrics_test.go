@@ -73,12 +73,12 @@ func TestMetrics(t *testing.T) {
 		{
 			name: "One secret, one config map",
 			expected: []string{
-				"# HELP openshift_csi_share_configmap_total Counts ConfigMap objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_configmap_total gauge",
-				"openshift_csi_share_configmap_total 1",
-				"# HELP openshift_csi_share_secret_total Counts Secret objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_secret_total gauge",
-				"openshift_csi_share_secret_total 1",
+				"# HELP openshift_csi_share_configmap Counts ConfigMap objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_configmap gauge",
+				"openshift_csi_share_configmap 1",
+				"# HELP openshift_csi_share_secret Counts Secret objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_secret gauge",
+				"openshift_csi_share_secret 1",
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{
@@ -108,12 +108,12 @@ func TestMetrics(t *testing.T) {
 		{
 			name: "Two secrets, no config maps",
 			expected: []string{
-				"# HELP openshift_csi_share_secret_total Counts Secret objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_secret_total gauge",
-				"openshift_csi_share_secret_total 2",
-				"# HELP openshift_csi_share_configmap_total Counts ConfigMap objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_configmap_total gauge",
-				"openshift_csi_share_configmap_total 0",
+				"# HELP openshift_csi_share_secret Counts Secret objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_secret gauge",
+				"openshift_csi_share_secret 2",
+				"# HELP openshift_csi_share_configmap Counts ConfigMap objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_configmap gauge",
+				"openshift_csi_share_configmap 0",
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{
@@ -142,12 +142,12 @@ func TestMetrics(t *testing.T) {
 		{
 			name: "No secrets, two config maps",
 			expected: []string{
-				"# HELP openshift_csi_share_configmap_total Counts ConfigMap objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_configmap_total gauge",
-				"openshift_csi_share_configmap_total 2",
-				"# HELP openshift_csi_share_secret_total Counts Secret objects shared by the CSI shared resource driver",
-				"# TYPE openshift_csi_share_secret_total gauge",
-				"openshift_csi_share_secret_total 0",
+				"# HELP openshift_csi_share_configmap Counts ConfigMap objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_configmap gauge",
+				"openshift_csi_share_configmap 2",
+				"# HELP openshift_csi_share_secret Counts Secret objects shared by the CSI shared resource driver",
+				"# TYPE openshift_csi_share_secret gauge",
+				"openshift_csi_share_secret 0",
 			},
 			secretLister: &fakeSecretShareLister{
 				secretShares: []*v1alpha1.SharedSecret{},

@@ -273,8 +273,8 @@ spec:
             - containerPort: 9898
               name: healthz
               protocol: TCP
-            - containerPort: 6000
-              name: metrics
+            - name: provisioner-m
+              containerPort: 6000
               protocol: TCP
           volumeMounts:
             - mountPath: /var/run/configmaps/config
@@ -294,6 +294,8 @@ spec:
               name: csi-volumes-map
             - mountPath: /dev
               name: dev-dir
+            - mountPath: /etc/secrets
+              name: shared-resource-csi-driver-node-metrics-serving-cert
           resources:
             requests:
               cpu: 10m
@@ -332,6 +334,10 @@ spec:
             path: /dev
             type: Directory
           name: dev-dir
+        - name: shared-resource-csi-driver-node-metrics-serving-cert
+          secret:
+            defaultMode: 420
+            secretName: shared-resource-csi-driver-node-metrics-serving-cert
 `)
 
 func nodeYamlBytes() ([]byte, error) {

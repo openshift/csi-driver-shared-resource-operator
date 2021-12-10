@@ -1,9 +1,18 @@
 package metrics
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"math/big"
+	mr "math/rand"
 	"net/http"
+	"os"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -22,9 +31,67 @@ var (
 	portOffset uint32 = 0
 )
 
+func TestMain(m *testing.M) {
+	var err error
+
+	mr.Seed(time.Now().UnixNano())
+
+	tlsKey, tlsCRT, err = generateTempCertificates()
+	if err != nil {
+		panic(err)
+	}
+
+	// sets the default http client to skip certificate check.
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	code := m.Run()
+	os.Remove(tlsKey)
+	os.Remove(tlsCRT)
+	os.Exit(code)
+}
+
+func generateTempCertificates() (string, string, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		return "", "", err
+	}
+
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+	}
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, key.Public(), key)
+	if err != nil {
+		return "", "", err
+	}
+
+	cert, err := ioutil.TempFile("", "testcert-")
+	if err != nil {
+		return "", "", err
+	}
+	defer cert.Close()
+	pem.Encode(cert, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: derBytes,
+	})
+
+	keyPath, err := ioutil.TempFile("", "testkey-")
+	if err != nil {
+		return "", "", err
+	}
+	defer keyPath.Close()
+	pem.Encode(keyPath, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	})
+
+	return keyPath.Name(), cert.Name(), nil
+}
+
 func blockUntilServerStarted(port int) error {
 	return wait.PollImmediate(100*time.Millisecond, 5*time.Second, func() (bool, error) {
-		if _, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port)); err != nil {
+		if _, err := http.Get(fmt.Sprintf("https://localhost:%d/metrics", port)); err != nil {
 			// in case error is "connection refused", server is not up (yet)
 			// it is possible that it is still being started
 			// in that case we need to try more
@@ -59,7 +126,7 @@ func TestRunServer(t *testing.T) {
 	port, ch := runMetricsServer(t)
 	defer close(ch)
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port))
+	resp, err := http.Get(fmt.Sprintf("https://localhost:%d/metrics", port))
 	if err != nil {
 		t.Fatalf("error while querying metrics server: %v", err)
 	}
@@ -70,7 +137,7 @@ func TestRunServer(t *testing.T) {
 }
 
 func testQueryGaugeMetric(t *testing.T, testName string, port, value int, query string) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port))
+	resp, err := http.Get(fmt.Sprintf("https://localhost:%d/metrics", port))
 	if err != nil {
 		t.Fatalf("error requesting metrics server: %v in test %q", err, testName)
 	}

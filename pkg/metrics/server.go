@@ -10,6 +10,11 @@ import (
 	"k8s.io/klog/v2"
 )
 
+var (
+	tlsCRT = "/etc/secrets/tls.crt"
+	tlsKey = "/etc/secrets/tls.key"
+)
+
 // BuildServer creates the http.Server struct
 func BuildServer(port int) *http.Server {
 	if port <= 0 {
@@ -40,7 +45,7 @@ func StopServer(srv *http.Server) {
 // RunServer starts the metrics server.
 func RunServer(srv *http.Server, stopCh <-chan struct{}) {
 	go func() {
-		err := srv.ListenAndServe()
+		err := srv.ListenAndServeTLS(tlsCRT, tlsKey)
 		if err != nil && err != http.ErrServerClosed {
 			klog.Errorf("error starting metrics server: %v", err)
 		}

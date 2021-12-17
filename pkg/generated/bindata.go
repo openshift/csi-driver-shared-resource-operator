@@ -605,10 +605,6 @@ kind: ServiceMonitor
 metadata:
   name: shared-resource-csi-driver-node-monitor
   namespace: openshift-cluster-csi-drivers
-  annotations:
-    include.release.openshift.io/ibm-cloud-managed: "true"
-    include.release.openshift.io/self-managed-high-availability: "true"
-    include.release.openshift.io/single-node-developer: "true"
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

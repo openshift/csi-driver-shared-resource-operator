@@ -28,8 +28,8 @@ import (
 	goc "github.com/openshift/library-go/pkg/operator/genericoperatorclient"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
-	"github.com/openshift/shared-resources-operator/pkg/generated"
-	"github.com/openshift/shared-resources-operator/pkg/metrics"
+	"github.com/openshift/csi-driver-shared-resource-operator/assets"
+	"github.com/openshift/csi-driver-shared-resource-operator/pkg/metrics"
 )
 
 const (
@@ -120,7 +120,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeClient,
 		dynamicClient,
 		kubeInformersForNamespaces,
-		generated.Asset,
+		assets.ReadFile,
 		[]string{
 			"csidriver.yaml",
 			"node_sa.yaml",
@@ -139,7 +139,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		configInformers,
 	).WithCSIDriverNodeService(
 		"SharedResourcesDriverNodeServiceController",
-		generated.Asset,
+		assets.ReadFile,
 		"node.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -180,7 +180,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 func ensureCRDSExist(ctx context.Context, apiextensionsClient apiextensionsclient.Interface) error {
 	crds := []string{"0000_10_sharedsecret.crd.yaml", "0000_10_sharedconfigmap.crd.yaml"}
 	for _, crd := range crds {
-		data, err := generated.Asset(crd)
+		data, err := assets.ReadFile(crd)
 		if err != nil {
 			return fmt.Errorf("error occurred reading file %q: %s", crd, err)
 		}
@@ -214,7 +214,7 @@ func ensureCRDSExist(ctx context.Context, apiextensionsClient apiextensionsclien
 // present, so we employ some cheap / meets min / don't go down the path
 // of shared informers" means for dealing with inadvertent deletes of the configuration configmap
 func ensureConfigurationConfigMapExists(ctx context.Context, kubeClient kubeclient.Interface) error {
-	cmData, err := generated.Asset("config_configmap.yaml")
+	cmData, err := assets.ReadFile("config_configmap.yaml")
 	if err != nil {
 		return fmt.Errorf("error occurred reading file 'config_configmap.yaml': %s", err)
 	}

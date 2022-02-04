@@ -16,8 +16,8 @@ import (
 
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 
-	"github.com/openshift/shared-resources-operator/pkg/operator"
-	"github.com/openshift/shared-resources-operator/pkg/version"
+	"github.com/openshift/csi-driver-shared-resource-operator/pkg/operator"
+	"github.com/openshift/csi-driver-shared-resource-operator/pkg/version"
 )
 
 func main() {

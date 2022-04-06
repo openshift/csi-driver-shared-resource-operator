@@ -32,3 +32,4 @@ and the image used for the Shared Resource CSI Driver that this operator deploys
 - `OPERATOR_IMAGE` where the default is quay.io/openshift/origin-csi-driver-shared-resource-operator:latest
 - `DRIVER_IMAGE`  where the default is quay.io/openshift/origin-csi-driver-shared-resource:latest
 
+test tech preview with master branch

@@ -29,6 +29,7 @@ import (
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
 	"github.com/openshift/csi-driver-shared-resource-operator/assets"
+	"github.com/openshift/csi-driver-shared-resource-operator/pkg/deploymentcontroller"
 	"github.com/openshift/csi-driver-shared-resource-operator/pkg/metrics"
 )
 
@@ -133,6 +134,9 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"rbac/node_binding.yaml",
 			"rbac/prometheus_role.yaml",
 			"rbac/prometheus_rolebinding.yaml",
+			"webhook/sa.yaml",
+			"webhook/configmap.yaml",
+			"webhook/service.yaml",
 		},
 	).WithCSIConfigObserverController(
 		"SharedResourcesDriverCSIConfigObserverController",
@@ -147,9 +151,12 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		csidrivernodeservicecontroller.WithObservedProxyDaemonSetHook(),
 	)
 
-	if err != nil {
-		return err
-	}
+	webhookDeploymentController := deploymentcontroller.NewWebHookDeploymentController(
+		kubeClient,
+		operatorClient,
+		kubeInformersForNamespaces,
+		controllerConfig.EventRecorder,
+	)
 
 	klog.Info("Starting the informers")
 	go kubeInformersForNamespaces.Start(ctx.Done())
@@ -159,6 +166,9 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 
 	klog.Info("Starting controllerset")
 	go csiControllerSet.Run(ctx, 1)
+
+	klog.Info("Starting webhookDeploymentController")
+	go webhookDeploymentController.Run(ctx, 1)
 
 	klog.Info("Starting metrics collection")
 

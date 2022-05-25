@@ -19,17 +19,19 @@ cp -r ../cluster-storage-operator/assets/csidriveroperators/shared-resource/* _d
 operatorImage=${OPERATOR_IMAGE:-quay.io/openshift/origin-csi-driver-shared-resource-operator:latest}
 driverImage=${DRIVER_IMAGE:-quay.io/openshift/origin-csi-driver-shared-resource:latest}
 nodeRegistrar=${NODE_REGISTRAR_IMAGE:-quay.io/openshift/origin-csi-node-driver-registrar:latest}
+webhookImage=${WEBHOOK_IMAGE:-quay.io/openshift/origin-csi-driver-shared-resource-webhook:latest}
 logLevel=${LOG_LEVEL:-5}
 
 echo "Deploying operator image ${operatorImage}"
 echo "Deploying driver image ${driverImage}"
 echo "Deploying node registrar image ${nodeRegistrar}"
+echo "Deploying webhook image ${webhookImage}"
 echo "Using log level ${logLevel}"
-
 sed -i -e "s|\${OPERATOR_IMAGE}|${operatorImage}|g" \
   -e "s|\${DRIVER_IMAGE}|${driverImage}|g" \
   -e "s|\${NODE_DRIVER_REGISTRAR_IMAGE}|${nodeRegistrar}|g" \
+  -e "s|\${WEBHOOK_IMAGE}|${webhookImage}|g" \
   -e "s|\${LOG_LEVEL}|${logLevel}|g" \
   _deploy/09_deployment.yaml
 
-oc apply -f _deploy/
+oc apply -f _deploy

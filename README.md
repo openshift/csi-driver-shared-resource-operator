@@ -27,8 +27,10 @@ oc delete -f ./assets
 To build run `make build`.
 
 To deploy run `make deploy`.  You can override the images used for the CSI Node Driver Registrar, the image for this operator,
-and the image used for the Shared Resource CSI Driver that this operator deploys, all via environment variables:
+the image used for the Shared Resource CSI Driver that this operator deploys and the image used for the Shared Resource CSI Driver
+Webhook, all via environment variables:
 - `NODE_DRIVER_REGISTRAR_IMAGE` where the default is quay.io/openshift/origin-csi-node-driver-registrar:latest
 - `OPERATOR_IMAGE` where the default is quay.io/openshift/origin-csi-driver-shared-resource-operator:latest
 - `DRIVER_IMAGE`  where the default is quay.io/openshift/origin-csi-driver-shared-resource:latest
+- `WEBHOOK_IMAGE`  where the default is quay.io/openshift/origin-csi-driver-shared-resource-webhook:latest
 

@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	admissionv1 "k8s.io/api/admission/v1"
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -35,12 +39,22 @@ import (
 
 const (
 	// Operand and operator run in the same namespace
-	defaultNamespace = "openshift-cluster-csi-drivers"
-	operatorName     = "csi-driver-shared-resource-operator"
-	operandName      = "csi-driver-shared-resource"
+	defaultNamespace    = "openshift-cluster-csi-drivers"
+	operatorName        = "csi-driver-shared-resource-operator"
+	operandName         = "csi-driver-shared-resource"
+	skipValidationLabel = "csi.sharedresource.openshift.io/skip-validation"
 
 	defaultResyncDuration = 20 * time.Minute
 )
+
+var (
+	scheme = runtime.NewScheme()
+)
+
+func init() {
+	utilruntime.Must(admissionv1.AddToScheme(scheme))
+	utilruntime.Must(admissionregistrationv1.AddToScheme(scheme))
+}
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
 	// Create core clientset and informers
@@ -110,6 +124,8 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		}
 	}()
 
+	setSkipValidationLabelForNamespace(ctx, kubeClient)
+
 	csiControllerSet := csicontrollerset.NewCSIControllerSet(
 		operatorClient,
 		controllerConfig.EventRecorder,
@@ -137,6 +153,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"webhook/sa.yaml",
 			"webhook/configmap.yaml",
 			"webhook/service.yaml",
+			"webhook/validating_webhook_configuration.yaml",
 		},
 	).WithCSIConfigObserverController(
 		"SharedResourcesDriverCSIConfigObserverController",
@@ -244,6 +261,21 @@ func ensureConfigurationConfigMapExists(ctx context.Context, kubeClient kubeclie
 	}
 	if err != nil && !kerrors.IsNotFound(err) {
 		return fmt.Errorf("unexpected error determining if %q exists: %s", configMap.Name, err)
+	}
+	return nil
+}
+
+// setSkipValidationLabelForNamespace sets the label skipValidationLabel for a the defaultNamespace.
+func setSkipValidationLabelForNamespace(ctx context.Context, kubeClient kubeclient.Interface) error {
+	ns, err := kubeClient.CoreV1().Namespaces().Get(ctx, defaultNamespace, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("unexpected error determining if %q exists: %s", defaultNamespace, err)
+	}
+
+	ns.ObjectMeta.Labels[skipValidationLabel] = "true"
+	_, err = kubeClient.CoreV1().Namespaces().Update(ctx, ns, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("unable to update namespace %q with label %q: %s", defaultNamespace, skipValidationLabel, err)
 	}
 	return nil
 }

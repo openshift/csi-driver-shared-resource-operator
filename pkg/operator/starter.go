@@ -152,6 +152,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"rbac/prometheus_rolebinding.yaml",
 			"webhook/sa.yaml",
 			"webhook/configmap.yaml",
+			"webhook/pdb.yaml",
 			"webhook/service.yaml",
 			"webhook/validating_webhook_configuration.yaml",
 		},

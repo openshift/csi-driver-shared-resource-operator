@@ -5,8 +5,10 @@ import (
 	"os"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
+	configinformers "github.com/openshift/client-go/config/informers/externalversions"
 	"github.com/openshift/csi-driver-shared-resource-operator/assets"
 	"github.com/openshift/library-go/pkg/controller/factory"
+	"github.com/openshift/library-go/pkg/operator/csi/csidrivercontrollerservicecontroller"
 	"github.com/openshift/library-go/pkg/operator/deploymentcontroller"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
@@ -16,12 +18,16 @@ import (
 const (
 	defaultNamespace                    = "openshift-cluster-csi-drivers"
 	envSharedResourceDriverWebhookImage = "WEBHOOK_IMAGE"
+	infraConfigName                     = "cluster"
 )
 
 func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 	operatorClient v1helpers.OperatorClientWithFinalizers,
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
+	configInformer configinformers.SharedInformerFactory,
 	recorder events.Recorder) factory.Controller {
+
+	nodeLister := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes().Lister()
 
 	return deploymentcontroller.NewDeploymentController(
 		"SharedResourceCSIDriverWebhookController",
@@ -30,10 +36,12 @@ func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 		operatorClient,
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace).Apps().V1().Deployments(),
-		nil, // optionalInformers
+		[]factory.Informer{configInformer.Config().V1().Infrastructures().Informer()},
 		[]deploymentcontroller.ManifestHookFunc{
 			replaceAll("${WEBHOOK_IMAGE}", os.Getenv(envSharedResourceDriverWebhookImage)),
 		},
+		csidrivercontrollerservicecontroller.WithControlPlaneTopologyHook(configInformer),
+		csidrivercontrollerservicecontroller.WithReplicasHook(nodeLister),
 	)
 }
 

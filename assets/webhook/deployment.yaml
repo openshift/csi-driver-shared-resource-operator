@@ -10,7 +10,10 @@ spec:
   selector:
     matchLabels:
       name: shared-resource-csi-driver-webhook
-  strategy: {}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       annotations:

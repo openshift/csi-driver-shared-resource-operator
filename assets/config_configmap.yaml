@@ -32,6 +32,9 @@ data:
       - openshift-sdn
       - openshift-service-ca-operator
 
+    authorizedSharedResources:
+      - openshift-etc-pki-entitlement: openshift-config-managed:etc-pki-entitlement
+
     refreshResources: true
 
     shareRelistInterval: 10m

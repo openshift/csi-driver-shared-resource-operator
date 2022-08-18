@@ -31,7 +31,12 @@ data:
       - openshift-machine-config-operator
       - openshift-sdn
       - openshift-service-ca-operator
-
     refreshResources: true
-
     shareRelistInterval: 10m
+  sharedconfigmap-list.yaml: |
+    ---
+    authorizedSharedResources:
+  sharedsecret-list.yaml: |
+    ---
+    authorizedSharedResources:
+      - openshift-etc-pki-entitlement: openshift-config-managed:etc-pki-entitlement

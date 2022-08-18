@@ -57,6 +57,8 @@ spec:
             - csi-driver-shared-resource
           args:
             - --config=/var/run/configmaps/config/config.yaml
+            - --config=/var/run/configmaps/config/sharedconfigmap-list.yaml
+            - --config=/var/run/configmaps/config/sharedsecret-list.yaml
             - "--drivername=csi.sharedresource.openshift.io"
             - "--v=4"
             - "--nodeid=$(KUBE_NODE_NAME)"

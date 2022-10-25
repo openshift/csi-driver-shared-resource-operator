@@ -15,6 +15,11 @@ import (
 	"github.com/openshift/library-go/pkg/operator/resource/resourcemerge"
 )
 
+const (
+	// Label on the CSIDriver to declare the driver's effective pod security profile
+	csiInlineVolProfileLabel = "security.openshift.io/csi-ephemeral-volume-profile"
+)
+
 // ApplyStorageClass merges objectmeta, tries to write everything else
 func ApplyStorageClass(ctx context.Context, client storageclientv1.StorageClassesGetter, recorder events.Recorder, required *storagev1.StorageClass) (*storagev1.StorageClass, bool,
 	error) {
@@ -115,6 +120,10 @@ func ApplyCSIDriver(ctx context.Context, client storageclientv1.CSIDriversGetter
 	if err != nil {
 		return nil, false, err
 	}
+	err = validateRequiredCSIDriverLabels(required)
+	if err != nil {
+		return nil, false, err
+	}
 
 	existing, err := client.CSIDrivers().Get(ctx, required.Name, metav1.GetOptions{})
 	if apierrors.IsNotFound(err) {
@@ -171,6 +180,24 @@ func ApplyCSIDriver(ctx context.Context, client storageclientv1.CSIDriversGetter
 	}
 	reportCreateEvent(recorder, existingCopy, err)
 	return actual, true, err
+}
+
+func validateRequiredCSIDriverLabels(required *storagev1.CSIDriver) error {
+	supportsEphemeralVolumes := false
+	for _, mode := range required.Spec.VolumeLifecycleModes {
+		if mode == storagev1.VolumeLifecycleEphemeral {
+			supportsEphemeralVolumes = true
+		}
+	}
+	// All OCP managed CSI drivers that support the Ephemeral volume
+	// lifecycle mode must provide a profile label the be matched against
+	// the pod security policy for the namespace of the pod.
+	// Valid values are: restricted, baseline, privileged.
+	_, labelFound := required.Labels[csiInlineVolProfileLabel]
+	if supportsEphemeralVolumes && !labelFound {
+		return fmt.Errorf("CSIDriver %s supports Ephemeral volume lifecycle but is missing required label %s", required.Name, csiInlineVolProfileLabel)
+	}
+	return nil
 }
 
 func DeleteStorageClass(ctx context.Context, client storageclientv1.StorageClassesGetter, recorder events.Recorder, required *storagev1.StorageClass) (*storagev1.StorageClass, bool,

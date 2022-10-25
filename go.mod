@@ -106,3 +106,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+// used only for testing https://github.com/openshift/library-go/pull/1410
+replace github.com/openshift/library-go => github.com/dobsonj/library-go v0.0.0-20221014195822-e844d39297c9

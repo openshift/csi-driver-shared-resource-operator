@@ -107,7 +107,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		}
 	}()
 
-	err = ensureConfigurationConfigMapExists(ctx, kubeClient)
+	err = ensureConfigurationConfigMapsExists(ctx, kubeClient)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			case <-cmDone:
 				return
 			case <-cmTicker.C:
-				ensureConfigurationConfigMapExists(ctx, kubeClient)
+				ensureConfigurationConfigMapsExists(ctx, kubeClient)
 			}
 		}
 	}()
@@ -242,25 +242,28 @@ func ensureCRDSExist(ctx context.Context, apiextensionsClient apiextensionsclien
 // the driver will run without our configuration configmap present, but we still prefer to have explicit configuration
 // present, so we employ some cheap / meets min / don't go down the path
 // of shared informers" means for dealing with inadvertent deletes of the configuration configmap
-func ensureConfigurationConfigMapExists(ctx context.Context, kubeClient kubeclient.Interface) error {
-	cmData, err := assets.ReadFile("config_configmap.yaml")
-	if err != nil {
-		return fmt.Errorf("error occurred reading file 'config_configmap.yaml': %s", err)
-	}
-	configMap := &corev1.ConfigMap{}
-	if err := yaml.Unmarshal(cmData, configMap); err != nil {
-		return fmt.Errorf("error occurred unmarshalling file 'config_configmap.yaml': %s", err)
-	}
-	_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(ctx, configMap.Name, metav1.GetOptions{})
-	if err != nil && kerrors.IsNotFound(err) {
-		if _, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(ctx, configMap, metav1.CreateOptions{}); err != nil {
-			return fmt.Errorf("error occurred creating ConfigMap %q: %s", configMap.Name, err)
+func ensureConfigurationConfigMapsExists(ctx context.Context, kubeClient kubeclient.Interface) error {
+	cms := []string{"config_configmap.yaml", "sharedconfigmaplist_configmap.yaml", "sharedsecretlist_configmap.yaml"}
+	for _, cm := range cms {
+		cmData, err := assets.ReadFile(cm)
+		if err != nil {
+			return fmt.Errorf("error occurred reading file %q: %s", cm, err)
 		}
-		klog.Infof("Successfully created ConfigMap %q", configMap.Name)
-	} else if err != nil && !kerrors.IsNotFound(err) {
-		return fmt.Errorf("unexpected error determining if %q exists: %s", configMap.Name, err)
-	} else {
-		klog.Infof("ConfigMap %q already exists, skipping creation", configMap.Name)
+		configMap := &corev1.ConfigMap{}
+		if err := yaml.Unmarshal(cmData, configMap); err != nil {
+			return fmt.Errorf("error occurred unmarshalling file %q: %s", cm, err)
+		}
+		_, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Get(ctx, configMap.Name, metav1.GetOptions{})
+		if err != nil && kerrors.IsNotFound(err) {
+			if _, err = kubeClient.CoreV1().ConfigMaps(defaultNamespace).Create(ctx, configMap, metav1.CreateOptions{}); err != nil {
+				return fmt.Errorf("error occurred creating ConfigMap %q: %s", configMap.Name, err)
+			}
+			klog.Infof("Successfully created ConfigMap %q", configMap.Name)
+		} else if err != nil && !kerrors.IsNotFound(err) {
+			return fmt.Errorf("unexpected error determining if %q exists: %s", configMap.Name, err)
+		} else {
+			klog.Infof("ConfigMap %q already exists, skipping creation", configMap.Name)
+		}
 	}
 	return nil
 }

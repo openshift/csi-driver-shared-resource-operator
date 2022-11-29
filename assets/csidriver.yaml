@@ -5,6 +5,8 @@ metadata:
   annotations:
     # This CSIDriver is managed by an OCP CSI operator
     csi.openshift.io/managed: "true"
+  labels:
+    security.openshift.io/csi-ephemeral-volume-profile: "restricted"
 spec:
   # Supports ephemeral inline volumes.
   volumeLifecycleModes:

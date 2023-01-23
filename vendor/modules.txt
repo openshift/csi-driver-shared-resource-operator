@@ -255,7 +255,7 @@ github.com/openshift/client-go/sharedresource/informers/externalversions/interna
 github.com/openshift/client-go/sharedresource/informers/externalversions/sharedresource
 github.com/openshift/client-go/sharedresource/informers/externalversions/sharedresource/v1alpha1
 github.com/openshift/client-go/sharedresource/listers/sharedresource/v1alpha1
-# github.com/openshift/library-go v0.0.0-20220915130036-73d5a4a82865
+# github.com/openshift/library-go v0.0.0-20230110130310-0ce4a0329127
 ## explicit; go 1.18
 github.com/openshift/library-go/pkg/authorization/hardcodedauthorizer
 github.com/openshift/library-go/pkg/config/client

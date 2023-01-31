@@ -22,6 +22,8 @@ oc delete -f ../cluster-storage-operator/assets/csidriveroperators/shared-resour
 
 # Delete operator's operand resources from a clone of this repository
 oc delete -f ./assets
+oc delete -f ./assets/webhook
+oc delete -f ./assets/rbac
 ```
 
 To build run `make build`.

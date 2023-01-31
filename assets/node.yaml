@@ -61,6 +61,10 @@ spec:
             - "--v=4"
             - "--nodeid=$(KUBE_NODE_NAME)"
           env:
+            - name: RESERVED_SHARED_CONFIGMAP_NAMES
+              value: ""
+            - name: RESERVED_SHARED_SECRET_NAMES
+              value: "openshift-etc-pki-entitlement: openshift-config-managed:etc-pki-entitlement"
             - name: KUBE_NODE_NAME
               valueFrom:
                 fieldRef:

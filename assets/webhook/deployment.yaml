@@ -31,6 +31,11 @@ spec:
           - --tlskey=/etc/secrets/shared-resource-csi-driver-webhook-serving-cert/tls.key
           - --cacert=/etc/pki/tls/certs/ca-bundle.crt
           - --port=8443
+        env:
+          - name: RESERVED_SHARED_CONFIGMAP_NAMES
+            value: ""
+          - name: RESERVED_SHARED_SECRET_NAMES
+            value: "openshift-etc-pki-entitlement: openshift-config-managed:etc-pki-entitlement"
         volumeMounts:
         - name: trusted-ca-bundle
           mountPath: /etc/pki/tls/certs/

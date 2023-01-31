@@ -35,6 +35,11 @@ webhooks:
       apiVersions: ["v1"]
       resources: ["pods"]
       scope: "*"
+    - operations: ["CREATE"]
+      apiGroups: ["sharedresource.openshift.io"]
+      apiVersions: ["v1", "v1beta1", "v1alpha1"]
+      resources: ["sharedsecrets", "sharedconfigmaps"]
+      scope: "*"
     - operations: ["CREATE", "UPDATE"]
       apiGroups: ["apps"]
       apiVersions: ["v1", "v1beta1"]

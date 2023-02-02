@@ -243,7 +243,7 @@ func ensureCRDSExist(ctx context.Context, apiextensionsClient apiextensionsclien
 // present, so we employ some cheap / meets min / don't go down the path
 // of shared informers" means for dealing with inadvertent deletes of the configuration configmap
 func ensureConfigurationConfigMapsExists(ctx context.Context, kubeClient kubeclient.Interface) error {
-	cms := []string{"config_configmap.yaml", "sharedconfigmaplist_configmap.yaml", "sharedsecretlist_configmap.yaml"}
+	cms := []string{"config_configmap.yaml"}
 	for _, cm := range cms {
 		cmData, err := assets.ReadFile(cm)
 		if err != nil {

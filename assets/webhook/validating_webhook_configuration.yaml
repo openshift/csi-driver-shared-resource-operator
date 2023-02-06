@@ -40,15 +40,5 @@ webhooks:
       apiVersions: ["v1", "v1beta1", "v1alpha1"]
       resources: ["sharedsecrets", "sharedconfigmaps"]
       scope: "*"
-    - operations: ["CREATE", "UPDATE"]
-      apiGroups: ["apps"]
-      apiVersions: ["v1", "v1beta1"]
-      resources: ["deployments", "daemonset"]
-      scope: "*"
-    - operations: ["CREATE", "UPDATE"]
-      apiGroups: ["apps.openshift.io"]
-      apiVersions: ["v1"]
-      resources: ["deploymentconfigs"]
-      scope: "*"
   sideEffects: None
   timeoutSeconds: 10

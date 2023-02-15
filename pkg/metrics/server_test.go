@@ -113,7 +113,7 @@ func runMetricsServer(t *testing.T) (int, chan<- struct{}) {
 
 	ch := make(chan struct{})
 	server := BuildServer(port)
-	go RunServer(server, ch)
+	go RunServer(server, ch, "")
 
 	if err := blockUntilServerStarted(port); err != nil {
 		t.Fatalf("error while waiting for metrics server: %v", err)

@@ -43,9 +43,14 @@ func StopServer(srv *http.Server) {
 }
 
 // RunServer starts the metrics server.
-func RunServer(srv *http.Server, stopCh <-chan struct{}) {
+func RunServer(srv *http.Server, stopCh <-chan struct{}, kubeconfig string) {
 	go func() {
-		err := srv.ListenAndServeTLS(tlsCRT, tlsKey)
+		var err error
+		if len(kubeconfig) == 0 {
+			err = srv.ListenAndServeTLS(tlsCRT, tlsKey)
+		} else {
+			err = srv.ListenAndServeTLS("", "")
+		}
 		if err != nil && err != http.ErrServerClosed {
 			klog.Errorf("error starting metrics server: %v", err)
 		}

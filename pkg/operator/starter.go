@@ -56,7 +56,7 @@ func init() {
 	utilruntime.Must(admissionregistrationv1.AddToScheme(scheme))
 }
 
-func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
+func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext, kubeconfig string) error {
 	// Create core clientset and informers
 	kubeClient := kubeclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
 	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, defaultNamespace, "")
@@ -193,7 +193,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 
 	klog.Info("Starting metrics endpoint")
 	server := metrics.BuildServer(metrics.MetricsPort)
-	go metrics.RunServer(server, ctx.Done())
+	go metrics.RunServer(server, ctx.Done(), kubeconfig)
 
 	<-ctx.Done()
 	crdDone <- true

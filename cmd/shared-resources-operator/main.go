@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"k8s.io/client-go/tools/clientcmd"
 	k8sflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/logs"
 
@@ -18,6 +19,10 @@ import (
 
 	"github.com/openshift/csi-driver-shared-resource-operator/pkg/operator"
 	"github.com/openshift/csi-driver-shared-resource-operator/pkg/version"
+)
+
+var (
+	kubeconfig *string
 )
 
 func main() {
@@ -49,12 +54,30 @@ func NewOperatorCommand() *cobra.Command {
 	ctrlCmd := controllercmd.NewControllerCommandConfig(
 		"shared-resources-operator",
 		version.Get(),
-		operator.RunOperator,
+		runOperatorWithKubeconfig,
 	).NewCommandWithContext(context.TODO()) //TODO cmd.Context()) came back with panic: cannot create context from nil parent
 	ctrlCmd.Use = "start"
 	ctrlCmd.Short = "Start the Projected Shared Resources Operator"
+	kubeconfig = ctrlCmd.Flags().String("kubeconfig", "", "Path to kubeconfig file.  If not provided, configured service account will be used.")
 
 	cmd.AddCommand(ctrlCmd)
 
 	return cmd
+}
+
+func runOperatorWithKubeconfig(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
+	if kubeconfig != nil && *kubeconfig != "" {
+		rules := clientcmd.NewDefaultClientConfigLoadingRules()
+		rules.ExplicitPath = *kubeconfig
+		c, err := rules.Load()
+		if err != nil {
+			return err
+		}
+		clientConfig := clientcmd.NewDefaultClientConfig(*c, nil)
+		controllerConfig.KubeConfig, err = clientConfig.ClientConfig()
+		if err != nil {
+			return err
+		}
+	}
+	return operator.RunOperator(ctx, controllerConfig)
 }

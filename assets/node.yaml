@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: shared-resource-csi-driver-node
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       priorityClassName: system-node-critical
       serviceAccountName: csi-driver-shared-resource-plugin

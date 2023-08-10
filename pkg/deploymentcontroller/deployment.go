@@ -19,6 +19,7 @@ const (
 	defaultNamespace                    = "openshift-cluster-csi-drivers"
 	envSharedResourceDriverWebhookImage = "WEBHOOK_IMAGE"
 	infraConfigName                     = "cluster"
+	webhookSecretName                   = "shared-resource-csi-driver-webhook-serving-cert"
 )
 
 func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
@@ -28,6 +29,7 @@ func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 	recorder events.Recorder) factory.Controller {
 
 	nodeLister := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes().Lister()
+	secretInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().Secrets()
 
 	return deploymentcontroller.NewDeploymentController(
 		"SharedResourceCSIDriverWebhookController",
@@ -36,12 +38,20 @@ func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 		operatorClient,
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace).Apps().V1().Deployments(),
-		[]factory.Informer{configInformer.Config().V1().Infrastructures().Informer()},
+		[]factory.Informer{
+			secretInformer.Informer(),
+			configInformer.Config().V1().Infrastructures().Informer(),
+		},
 		[]deploymentcontroller.ManifestHookFunc{
 			replaceAll("${WEBHOOK_IMAGE}", os.Getenv(envSharedResourceDriverWebhookImage)),
 		},
 		csidrivercontrollerservicecontroller.WithControlPlaneTopologyHook(configInformer),
 		csidrivercontrollerservicecontroller.WithReplicasHook(nodeLister),
+		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(
+			defaultNamespace,
+			webhookSecretName,
+			secretInformer,
+		),
 	)
 }
 

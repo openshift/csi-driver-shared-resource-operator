@@ -27,6 +27,7 @@ import (
 	shareclientv1alpha1 "github.com/openshift/client-go/sharedresource/clientset/versioned"
 	shareinformer "github.com/openshift/client-go/sharedresource/informers/externalversions"
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
+	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/csi/csicontrollerset"
 	"github.com/openshift/library-go/pkg/operator/csi/csidrivernodeservicecontroller"
 	goc "github.com/openshift/library-go/pkg/operator/genericoperatorclient"
@@ -39,10 +40,11 @@ import (
 
 const (
 	// Operand and operator run in the same namespace
-	defaultNamespace    = "openshift-cluster-csi-drivers"
-	operatorName        = "csi-driver-shared-resource-operator"
-	operandName         = "csi-driver-shared-resource"
-	skipValidationLabel = "csi.sharedresource.openshift.io/skip-validation"
+	defaultNamespace      = "openshift-cluster-csi-drivers"
+	operatorName          = "csi-driver-shared-resource-operator"
+	operandName           = "csi-driver-shared-resource"
+	metricsCertSecretName = "shared-resource-csi-driver-node-metrics-serving-cert"
+	skipValidationLabel   = "csi.sharedresource.openshift.io/skip-validation"
 
 	defaultResyncDuration = 20 * time.Minute
 )
@@ -60,6 +62,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	// Create core clientset and informers
 	kubeClient := kubeclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
 	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, defaultNamespace, "")
+	secretInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().Secrets()
 
 	// Create config clientset and informer. This is used to get the cluster ID
 	configClient := configclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
@@ -165,7 +168,10 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		"node.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
-		nil, // Node doesn't need to react to any changes
+		[]factory.Informer{
+			secretInformer.Informer(),
+		},
+		csidrivernodeservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, metricsCertSecretName, secretInformer),
 		csidrivernodeservicecontroller.WithObservedProxyDaemonSetHook(),
 	)
 

@@ -10,6 +10,3 @@ rules:
   - apiGroups: ["sharedresource.openshift.io"]
     resources: ["sharedconfigmaps", "sharedsecrets"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["authorization.k8s.io"]
-    resources: ["subjectaccessreviews"]
-    verbs: ["create"]

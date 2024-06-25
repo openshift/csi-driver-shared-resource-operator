@@ -12,6 +12,8 @@ func ReadFile(name string) ([]byte, error) {
 	return f.ReadFile(name)
 }
 
+// Trigger CI
+
 // MustAsset reads and returns the content of the file at path or panics
 // if something went wrong.
 func MustAsset(path string) []byte {

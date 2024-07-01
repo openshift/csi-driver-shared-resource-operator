@@ -1,8 +1,8 @@
 module github.com/openshift/csi-driver-shared-resource-operator
 
-go 1.21
+go 1.22
 
-toolchain go1.21.3
+toolchain go1.22.1
 
 require (
 	github.com/blang/semver v3.5.1+incompatible

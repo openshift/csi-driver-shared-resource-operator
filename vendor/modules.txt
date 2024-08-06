@@ -238,6 +238,7 @@ github.com/openshift/api/servicecertsigner
 github.com/openshift/api/servicecertsigner/v1alpha1
 github.com/openshift/api/sharedresource
 github.com/openshift/api/sharedresource/v1alpha1
+github.com/openshift/api/sharedresource/v1alpha1/zz_generated.crd-manifests
 github.com/openshift/api/template
 github.com/openshift/api/template/v1
 github.com/openshift/api/user

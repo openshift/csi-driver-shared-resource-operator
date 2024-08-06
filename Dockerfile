@@ -1,7 +1,8 @@
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.22-openshift-4.17 AS builder
 WORKDIR /go/src/github.com/openshift/shared-resources-operator
 COPY . .
-COPY vendor/github.com/openshift/api/sharedresource/v1alpha1/*.crd.yaml assets/
+COPY vendor/github.com/openshift/api/sharedresource/v1alpha1/zz_generated.crd-manifests/sharedsecrets.crd.yaml assets/0000_10_sharedsecret.crd.yaml
+COPY vendor/github.com/openshift/api/sharedresource/v1alpha1/zz_generated.crd-manifests/sharedconfigmaps.crd.yaml assets/0000_10_sharedconfigmap.crd.yaml
 RUN make update
 RUN make
 

@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: shared-resource-specific-access
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["example-secret1", "example-secret2", "example-secret3"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["sharedresource.openshift.io"]
+    resources: ["sharedconfigmaps", "sharedsecrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]

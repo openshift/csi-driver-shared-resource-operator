@@ -1,3 +1,8 @@
+> [!warning]
+> **This repo is obsolete in OCP 4.18.**
+> csi-driver-shared-resource-operator is no longer deployed as part of the OCP payload on 4.18 and newer branches. Instead, the [Shared Resource CSI Driver](https://github.com/openshift/csi-driver-shared-resource) is packaged as part of the Builds for OpenShift layered product.
+> 4.17 and older branches in this repo are still in use, until EOL of the corresponding OCP version.
+
 # csi-driver-shared-resource-operator
 
 An operator to deploy the [Shared Resource CSI Driver](https://github.com/openshift/csi-driver-shared-resource) in OpenShift.

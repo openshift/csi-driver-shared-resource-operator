@@ -18,6 +18,7 @@ spec:
       labels:
         app: shared-resource-csi-driver-node
       annotations:
+        openshift.io/required-scc: privileged
         target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       priorityClassName: system-node-critical

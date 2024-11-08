@@ -8,3 +8,4 @@ spec:
   selector:
     matchLabels:
       name: shared-resource-csi-driver-webhook
+  unhealthyEvictionPolicy: AlwaysAllow

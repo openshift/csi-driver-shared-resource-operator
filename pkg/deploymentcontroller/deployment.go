@@ -28,7 +28,6 @@ func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 	configInformer configinformers.SharedInformerFactory,
 	recorder events.Recorder) factory.Controller {
 
-	nodeLister := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes().Lister()
 	secretInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().Secrets()
 
 	return deploymentcontroller.NewDeploymentController(
@@ -46,7 +45,7 @@ func NewWebHookDeploymentController(kubeClient kubernetes.Interface,
 			replaceAll("${WEBHOOK_IMAGE}", os.Getenv(envSharedResourceDriverWebhookImage)),
 		},
 		csidrivercontrollerservicecontroller.WithControlPlaneTopologyHook(configInformer),
-		csidrivercontrollerservicecontroller.WithReplicasHook(nodeLister),
+		csidrivercontrollerservicecontroller.WithReplicasHook(configInformer),
 		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(
 			defaultNamespace,
 			webhookSecretName,
